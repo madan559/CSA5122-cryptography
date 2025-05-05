@@ -1,0 +1,91 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+void encrypt(char text[], char key[], char cipherText[]) {
+    int n = strlen(text);
+    int keyLength = strlen(key);
+    int rows = (n + keyLength - 1) / keyLength;
+    
+   
+    char matrix[rows][keyLength];
+    
+   
+    int k = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < keyLength; j++) {
+            if (k < n) {
+                matrix[i][j] = text[k++];
+            } else {
+                matrix[i][j] = 'X'; 
+            }
+        }
+    }
+
+   
+    int idx = 0;
+    for (int i = 0; i < keyLength; i++) {
+        
+        for (int j = 0; j < keyLength; j++) {
+            if (key[j] == i + '0') {
+                
+                for (int r = 0; r < rows; r++) {
+                    cipherText[idx++] = matrix[r][j];
+                }
+                break;
+            }
+        }
+    }
+    cipherText[idx] = '\0';
+}
+
+void decrypt(char cipherText[], char key[], char plainText[]) {
+    int n = strlen(cipherText);
+    int keyLength = strlen(key);
+    int rows = n / keyLength;
+    
+   
+    char matrix[rows][keyLength];
+    
+    int idx = 0;
+    for (int i = 0; i < keyLength; i++) {
+       
+        for (int j = 0; j < keyLength; j++) {
+            if (key[j] == i + '0') {
+               
+                for (int r = 0; r < rows; r++) {
+                    matrix[r][j] = cipherText[idx++];
+                }
+                break;
+            }
+        }
+    }
+    
+   
+    idx = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < keyLength; j++) {
+            if (matrix[i][j] != 'X') {  // Ignore padding
+                plainText[idx++] = matrix[i][j];
+            }
+        }
+    }
+    plainText[idx] = '\0';
+}
+
+int main() {
+    char text[] = "my name is madan kumar";  
+    char key[] = "3124";  
+    char cipherText[100];
+    char decryptedText[100];
+
+  
+    encrypt(text, key, cipherText);
+    printf("Encrypted Text: %s\n", cipherText);
+
+   
+    decrypt(cipherText, key, decryptedText);
+    printf("Decrypted Text: %s\n", decryptedText);
+
+    return 0;
+}
