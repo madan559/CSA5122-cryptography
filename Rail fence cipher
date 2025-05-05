@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAX_LEN 256
+#define RAILS 2  // Number of rails
+
+
+void clean_input(const char *input, char *output) {
+    int j = 0;
+    for (int i = 0; input[i]; i++) {
+        if (isalpha(input[i])) {
+            output[j++] = tolower(input[i]);
+        }
+    }
+    output[j] = '\0';
+}
+
+
+void encrypt_rail_fence(const char *plaintext, char *ciphertext) {
+    char rail1[MAX_LEN] = {0}, rail2[MAX_LEN] = {0};
+    int len = strlen(plaintext);
+    int r1 = 0, r2 = 0;
+
+    for (int i = 0; i < len; i++) {
+        if (i % 2 == 0)
+            rail1[r1++] = plaintext[i];
+        else
+            rail2[r2++] = plaintext[i];
+    }
+
+  
+    strcpy(ciphertext, rail1);
+    strcat(ciphertext, rail2);
+}
+
+
+void decrypt_rail_fence(const char *ciphertext, char *plaintext) {
+    int len = strlen(ciphertext);
+    int mid = (len + 1) / 2;
+    int i = 0, j = mid, k = 0;
+
+    while (i < mid || j < len) {
+        if (i < mid) plaintext[k++] = ciphertext[i++];
+        if (j < len) plaintext[k++] = ciphertext[j++];
+    }
+    plaintext[k] = '\0';
+}
+
+int main() {
+    const char *raw_input = "my name is madan kumar";
+    char clean_text[MAX_LEN], ciphertext[MAX_LEN], decrypted[MAX_LEN];
+
+    clean_input(raw_input, clean_text);
+
+    printf("Cleaned input   : %s\n", clean_text);
+
+    encrypt_rail_fence(clean_text, ciphertext);
+    printf("Encrypted (Rail Fence, 2 rails): %s\n", ciphertext);
+
+    decrypt_rail_fence(ciphertext, decrypted);
+    printf("Decrypted       : %s\n", decrypted);
+
+    return 0;
+}
