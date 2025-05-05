@@ -1,0 +1,166 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define SIZE 3 // Size of the Hill cipher matrix
+
+// Function to find the modular inverse of a number modulo 26
+int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++) {
+        if ((a * x) % m == 1) {
+            return x;
+        }
+    }
+    return -1;
+}
+
+// Function to find the determinant of a matrix modulo 26
+int determinant(int matrix[SIZE][SIZE]) {
+    int det = 0;
+    for (int i = 0; i < SIZE; i++) {
+        det += (matrix[0][i] * (matrix[1][(i+1)%SIZE] * matrix[2][(i+2)%SIZE] - matrix[1][(i+2)%SIZE] * matrix[2][(i+1)%SIZE]));
+    }
+    return det;
+}
+
+// Function to find the inverse of a matrix modulo 26
+int inverseMatrix(int matrix[SIZE][SIZE], int inverse[SIZE][SIZE]) {
+    int det = determinant(matrix);
+    det = modInverse(det, 26);
+    
+    if (det == -1) {
+        printf("Inverse does not exist.\n");
+        return -1;
+    }
+    
+    // Calculating adjoint of matrix
+    int adj[SIZE][SIZE];
+    adj[0][0] = matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1];
+    adj[0][1] = -(matrix[0][1] * matrix[2][2] - matrix[0][2] * matrix[2][1]);
+    adj[0][2] = matrix[0][1] * matrix[1][2] - matrix[0][2] * matrix[1][1];
+    
+    adj[1][0] = -(matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0]);
+    adj[1][1] = matrix[0][0] * matrix[2][2] - matrix[0][2] * matrix[2][0];
+    adj[1][2] = -(matrix[0][0] * matrix[1][2] - matrix[0][2] * matrix[1][0]);
+    
+    adj[2][0] = matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0];
+    adj[2][1] = -(matrix[0][0] * matrix[2][1] - matrix[0][1] * matrix[2][0]);
+    adj[2][2] = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+    
+    // Taking the adjoint matrix modulo 26
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            adj[i][j] = (adj[i][j] + 26) % 26;
+        }
+    }
+    
+    // Finding inverse matrix by multiplying adjoint by det (mod 26)
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            inverse[i][j] = (adj[i][j] * det) % 26;
+        }
+    }
+    return 0;
+}
+
+// Function to multiply matrices
+void multiplyMatrix(int mat1[SIZE][SIZE], int mat2[SIZE][SIZE], int result[SIZE][SIZE]) {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            result[i][j] = 0;
+            for (int k = 0; k < SIZE; k++) {
+                result[i][j] = (result[i][j] + mat1[i][k] * mat2[k][j]) % 26;
+            }
+        }
+    }
+}
+
+// Function to convert text to matrix
+void textToMatrix(char text[], int matrix[SIZE][SIZE]) {
+    int len = strlen(text);
+    int idx = 0;
+    
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (idx < len) {
+                matrix[i][j] = text[idx] - 'a';
+                idx++;
+            } else {
+                matrix[i][j] = 0; // Padding with 'a' if text is shorter
+            }
+        }
+    }
+}
+
+
+void matrixToText(int matrix[SIZE][SIZE], char text[]) {
+    int idx = 0;
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            text[idx] = matrix[i][j] + 'a';
+            idx++;
+        }
+    }
+    text[idx] = '\0';
+}
+
+
+void encrypt(char plaintext[], int key[SIZE][SIZE], char ciphertext[]) {
+    int textMatrix[SIZE][SIZE];
+    int resultMatrix[SIZE][SIZE];
+    
+    
+    textToMatrix(plaintext, textMatrix);
+    
+   
+    multiplyMatrix(key, textMatrix, resultMatrix);
+    
+   
+    matrixToText(resultMatrix, ciphertext);
+}
+
+
+void decrypt(char ciphertext[], int key[SIZE][SIZE], char decryptedText[]) {
+    int textMatrix[SIZE][SIZE];
+    int resultMatrix[SIZE][SIZE];
+    int inverseKey[SIZE][SIZE];
+    
+   
+    if (inverseMatrix(key, inverseKey) == -1) {
+        return;
+    }
+    
+   
+    textToMatrix(ciphertext, textMatrix);
+    
+   
+    multiplyMatrix(inverseKey, textMatrix, resultMatrix);
+    
+    
+    matrixToText(resultMatrix, decryptedText);
+}
+
+int main() {
+    
+    int key[SIZE][SIZE] = {
+        {6, 24, 1},
+        {13, 16, 10},
+        {20, 17, 15}
+    };
+    
+    char plaintext[] = "madan kumar is studying cryptography network system";  
+    char ciphertext[100];
+    char decryptedText[100];
+    
+   
+    encrypt(plaintext, key, ciphertext);
+    printf("Encrypted Text: %s\n", ciphertext);
+    
+    
+    decrypt(ciphertext, key, decryptedText);
+    printf("Decrypted Text: %s\n", decryptedText);
+    
+    return 0;
+}
