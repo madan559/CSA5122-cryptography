@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 26
+
+// Example key: permutation of A-Z
+const char key[SIZE] = {
+    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
+    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z',
+    'X', 'C', 'V', 'B', 'N', 'M'
+};
+
+// Function to encrypt plaintext
+void encrypt(const char *plaintext, char *ciphertext) {
+    int i;
+    for (i = 0; plaintext[i] != '\0'; i++) {
+        char ch = plaintext[i];
+        if (isalpha(ch)) {
+            int is_lower = islower(ch);
+            ch = toupper(ch);
+            ciphertext[i] = is_lower ? tolower(key[ch - 'A']) : key[ch - 'A'];
+        } else {
+            ciphertext[i] = ch;  // leave non-alpha characters unchanged
+        }
+    }
+    ciphertext[i] = '\0';
+}
+
+// Function to decrypt ciphertext
+void decrypt(const char *ciphertext, char *plaintext) {
+    int i;
+    for (i = 0; ciphertext[i] != '\0'; i++) {
+        char ch = ciphertext[i];
+        if (isalpha(ch)) {
+            int is_lower = islower(ch);
+            ch = toupper(ch);
+            for (int j = 0; j < SIZE; j++) {
+                if (key[j] == ch) {
+                    plaintext[i] = is_lower ? tolower('A' + j) : 'A' + j;
+                    break;
+                }
+            }
+        } else {
+            plaintext[i] = ch;  // leave non-alpha characters unchanged
+        }
+    }
+    plaintext[i] = '\0';
+}
+
+int main() {
+    char plaintext[256], ciphertext[256], decrypted[256];
+
+    printf("Enter plaintext: ");
+    fgets(plaintext, sizeof(plaintext), stdin);
+    plaintext[strcspn(plaintext, "\n")] = '\0'; // remove newline
+
+    encrypt(plaintext, ciphertext);
+    printf("Encrypted: %s\n", ciphertext);
+
+    decrypt(ciphertext, decrypted);
+    printf("Decrypted: %s\n", decrypted);
+
+    return 0;
+}
