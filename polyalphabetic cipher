@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+// Function to repeat the key to match text length
+void generate_key(const char *text, const char *key, char *new_key) {
+    int text_len = strlen(text);
+    int key_len = strlen(key);
+    for (int i = 0, j = 0; i < text_len; i++) {
+        if (isalpha(text[i])) {
+            new_key[i] = toupper(key[j % key_len]);
+            j++;
+        } else {
+            new_key[i] = text[i]; // maintain non-alpha positions
+        }
+    }
+    new_key[text_len] = '\0';
+}
+
+// Encryption function
+void encrypt(const char *plaintext, const char *key, char *ciphertext) {
+    char new_key[256];
+    generate_key(plaintext, key, new_key);
+    for (int i = 0; plaintext[i] != '\0'; i++) {
+        if (isalpha(plaintext[i])) {
+            int is_lower = islower(plaintext[i]);
+            char base = is_lower ? 'a' : 'A';
+            int pi = toupper(plaintext[i]) - 'A';
+            int ki = new_key[i] - 'A';
+            char encrypted_char = ((pi + ki) % 26) + base;
+            ciphertext[i] = is_lower ? tolower(encrypted_char) : encrypted_char;
+        } else {
+            ciphertext[i] = plaintext[i]; // non-alpha characters unchanged
+        }
+    }
+    ciphertext[strlen(plaintext)] = '\0';
+}
+
+// Decryption function
+void decrypt(const char *ciphertext, const char *key, char *plaintext) {
+    char new_key[256];
+    generate_key(ciphertext, key, new_key);
+    for (int i = 0; ciphertext[i] != '\0'; i++) {
+        if (isalpha(ciphertext[i])) {
+            int is_lower = islower(ciphertext[i]);
+            char base = is_lower ? 'a' : 'A';
+            int ci = toupper(ciphertext[i]) - 'A';
+            int ki = new_key[i] - 'A';
+            char decrypted_char = ((ci - ki + 26) % 26) + base;
+            plaintext[i] = is_lower ? tolower(decrypted_char) : decrypted_char;
+        } else {
+            plaintext[i] = ciphertext[i]; // non-alpha characters unchanged
+        }
+    }
+    plaintext[strlen(ciphertext)] = '\0';
+}
+
+int main() {
+    char plaintext[256], ciphertext[256], decrypted[256], key[256];
+
+    printf("Enter plaintext: ");
+    fgets(plaintext, sizeof(plaintext), stdin);
+    plaintext[strcspn(plaintext, "\n")] = '\0'; // remove newline
+
+    printf("Enter key (alphabetic only): ");
+    fgets(key, sizeof(key), stdin);
+    key[strcspn(key, "\n")] = '\0'; // remove newline
+
+    encrypt(plaintext, key, ciphertext);
+    printf("Encrypted: %s\n", ciphertext);
+
+    decrypt(ciphertext, key, decrypted);
+    printf("Decrypted: %s\n", decrypted);
+
+    return 0;
+}
