@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <ctype.h>
+
+// Function to compute GCD
+int gcd(int a, int b) {
+    while (b != 0) {
+        int t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
+}
+
+// Function to compute modular inverse of a under mod m
+int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++)
+        if ((a * x) % m == 1)
+            return x;
+    return -1; // no inverse
+}
+
+// Affine decryption of a single character
+char decryptChar(char c, int a_inv, int b) {
+    if (isalpha(c)) {
+        int y = toupper(c) - 'A';
+        int x = (a_inv * (y - b + 26)) % 26;
+        return x + 'A';
+    }
+    return c; // non-letter remains unchanged
+}
+
+// Decrypt the entire ciphertext
+void decryptText(const char *ciphertext, int a, int b) {
+    int a_inv = modInverse(a, 26);
+    if (a_inv == -1) {
+        printf("No modular inverse for a = %d\n", a);
+        return;
+    }
+
+    printf("\nTrying a = %d, b = %d:\nDecrypted text:\n", a, b);
+    for (int i = 0; ciphertext[i] != '\0'; i++) {
+        putchar(decryptChar(ciphertext[i], a_inv, b));
+    }
+    printf("\n");
+}
+
+int main() {
+    // Example ciphertext to test — replace with your actual ciphertext
+    const char *ciphertext = "BUBBBUBBU";
+
+    // Solve the equation: 15a ≡ 19 mod 26 (from frequency assumption)
+    for (int a = 1; a < 26; a++) {
+        if (gcd(a, 26) != 1) continue; // skip non-coprime values
+        if ((15 * a) % 26 == 19) {
+            int b = (1 - (a * 4) % 26 + 26) % 26; // solve for b using a*4 + b ≡ 1 mod 26
+            decryptText(ciphertext, a, b);
+        }
+    }
+
+    return 0;
+}
