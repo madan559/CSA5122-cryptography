@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <stdint.h>
+void blowfish_encrypt(uint32_t *left, uint32_t *right, uint32_t key) {
+    for (int i = 0; i < 16; i++) {
+        *left ^= key;
+        *right ^= *left;
+        uint32_t temp = *left;
+        *left = *right;
+        *right = temp;
+    }
+    uint32_t temp = *left;
+    *left = *right;
+    *right = temp;
+}
+
+void blowfish_decrypt(uint32_t *left, uint32_t *right, uint32_t key) {
+    uint32_t temp = *left;
+    *left = *right;
+    *right = temp;
+
+    for (int i = 15; i >= 0; i--) {
+        temp = *left;
+        *left = *right;
+        *right = temp;
+
+        *right ^= *left;
+        *left ^= key;
+    }
+}
+
+int main() {
+    uint32_t left = 0x12345678;
+    uint32_t right = 0x9abcdef0;
+    uint32_t key = 0xA5A5A5A5;  
+
+    printf("Original Data:  L = %08x, R = %08x\n", left, right);
+
+    blowfish_encrypt(&left, &right, key);
+    printf("Encrypted Data: L = %08x, R = %08x\n", left, right);
+
+    blowfish_decrypt(&left, &right, key);
+    printf("Decrypted Data: L = %08x, R = %08x\n", left, right);
+
+    return 0;
+}
