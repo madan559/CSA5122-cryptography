@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <math.h>
+
+// Function to perform modular exponentiation
+int power(int base, int exp, int mod) {
+    int result = 1;
+    base = base % mod;
+
+    while (exp > 0) {
+        if (exp % 2 == 1)  // If exp is odd
+            result = (result * base) % mod;
+
+        exp = exp >> 1;  // exp = exp / 2
+        base = (base * base) % mod;
+    }
+    return result;
+}
+
+// XOR encryption/decryption
+void xorCipher(char *message, int key) {
+    for (int i = 0; message[i] != '\0'; i++) {
+        message[i] = message[i] ^ key;
+    }
+}
+
+int main() {
+    int p = 23;  // A prime number
+    int g = 5;   // Primitive root modulo p
+
+    int a_private = 6;  // Alice's private key
+    int b_private = 15; // Bob's private key
+
+    // Compute public keys
+    int A = power(g, a_private, p); // Alice sends this
+    int B = power(g, b_private, p); // Bob sends this
+
+    // Compute shared secret keys
+    int shared_key_alice = power(B, a_private, p);
+    int shared_key_bob = power(A, b_private, p);
+
+    printf("Shared Key (Alice): %d\n", shared_key_alice);
+    printf("Shared Key (Bob): %d\n", shared_key_bob);
+
+    // Use shared key to encrypt/decrypt a message
+    char message[] = "HELLO";
+    printf("Original Message: %s\n", message);
+
+    // Encrypt
+    xorCipher(message, shared_key_alice);
+    printf("Encrypted Message: ");
+    for (int i = 0; message[i] != '\0'; i++)
+        printf("%c", message[i]);
+    printf("\n");
+
+    // Decrypt (using same key)
+    xorCipher(message, shared_key_bob);
+    printf("Decrypted Message: %s\n", message);
+
+    return 0;
+}
